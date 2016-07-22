@@ -61,7 +61,7 @@ int __aio_init_forward(aio_t *rio, aio_t *wio
 
 	rio->io.hEvent = evt1;
 	wio->io.hEvent = evt2;
-	rio->min_io_size = 1024;
+	rio->min_io_size = 2048;
 	wio->min_io_size = 0;
 
 	return 0;

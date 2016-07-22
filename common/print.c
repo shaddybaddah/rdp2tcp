@@ -169,7 +169,7 @@ int error(const char *fmt, ...)
  */
 void print_xfer(const char *name, char rw, unsigned int size)
 {
-	info(1, (rw=='r'?"%-6s          < %-8u":"%-6s %8u >"), name, size);
+	debug(1, (rw=='r'?"%-6s          < %-8u":"%-6s %8u >"), name, size);
 }
 
 #ifdef DEBUG

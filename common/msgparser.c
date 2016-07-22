@@ -43,6 +43,7 @@ int commands_parse(iobuf_t *ibuf)
 {
 	unsigned char cmd, *data;
 	unsigned int off, msg_len, avail;
+	int rc = 0;
 	static const unsigned char r2t_min_size[R2TCMD_MAX] = {
 		3, // R2TCMD_CONN
 		2, // R2TCMD_CLOSE
@@ -76,27 +77,35 @@ int commands_parse(iobuf_t *ibuf)
 		off += 4;
 
 		cmd = data[off];
-		if (cmd >= R2TCMD_MAX)
-			return error("invalid command id 0x%02x", cmd);
+		unsigned char *msg = data+off;
+		off += msg_len;
+		if (cmd >= R2TCMD_MAX) {
+			rc = error("invalid command id 0x%02x", cmd);
+			break;
+		}
 
-		if (msg_len < (unsigned int)r2t_min_size[cmd])
-			return error("command 0x%02x too short 0x%08x < 0x%08x", 
+		if (msg_len < (unsigned int)r2t_min_size[cmd]) {
+			rc = error("command 0x%02x too short 0x%08x < 0x%08x", 
 					cmd, msg_len, (unsigned int)r2t_min_size[cmd]);
+			break;
+		}
 
-		if (!cmd_handlers[cmd])
-			return error("command 0x%02x not supported", cmd);
+		if (!cmd_handlers[cmd]) {
+			rc = error("command 0x%02x not supported", cmd);
+			break;
+		}
 
 		// call specific command handler
-		if (cmd_handlers[cmd]((const r2tmsg_t*)(data+off), msg_len))
-			return -1;
-
-		off += msg_len;
+		if (cmd_handlers[cmd]((const r2tmsg_t*)msg, msg_len)) {
+			rc = -1;
+			break;
+		}
 	}
 
 	if (off > 0)
 		iobuf_consume(ibuf, off);
 
-	return 0;
+	return rc;
 }
 
 // R2TERR_xxx error strings

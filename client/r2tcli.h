@@ -126,6 +126,7 @@ void channel_pong(void);
 unsigned char channel_request_tunnel(unsigned char, const char *, unsigned short, int);
 int channel_forward_recv(netsock_t *);
 int channel_forward_iobuf(iobuf_t *, unsigned char);
+void channel_rconnect_tunnel(unsigned char);
 void channel_close_tunnel(unsigned char);
 
 // controller.c

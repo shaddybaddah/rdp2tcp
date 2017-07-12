@@ -309,6 +309,27 @@ unsigned char channel_request_tunnel(
 }
 
 /**
+ * acknowledge to the server that the client successfully
+ * connected the reverse tunnel, so that it may now send
+ * data down the tunnel
+ * @param[in] tid the tunnel ID
+ */
+void channel_rconnect_tunnel(unsigned char tid)
+{
+	r2tmsg_t *msg;
+
+	assert(tid != 0xff);
+	trace_chan("tid=0x%02x", tid);
+
+	msg = write_reserve(2, NULL);
+	if (msg) {
+		msg->cmd = R2TCMD_RCONN;
+		msg->id  = tid;
+		write_commit(2);
+	}
+}
+
+/**
  * notify the server a tunnel has been closed
  * @param[in] tid the tunnel ID
  */

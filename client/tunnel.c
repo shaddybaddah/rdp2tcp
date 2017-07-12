@@ -411,8 +411,10 @@ int tunnel_write(netsock_t *ns, const void *buf, unsigned int len)
  */
 int tunnel_write_event(netsock_t *ns)
 {
-	if ((ns->type == NETSOCK_RTUNCLI) && (ns->state != NETSTATE_CONNECTED))
+	if ((ns->type == NETSOCK_RTUNCLI) && (ns->state != NETSTATE_CONNECTED)) {
 		ns->state = NETSTATE_CONNECTED;
+		channel_rconnect_tunnel(ns->tid);
+	}
 
 	return netsock_write(ns, NULL, 0);
 }

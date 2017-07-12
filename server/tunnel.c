@@ -416,7 +416,7 @@ static int tunnel_accept_event(tunnel_t *tun)
 	}
 	cli->sock.fd   = cli_sock.fd;
 	cli->sock.evt  = cli_sock.evt;
-	cli->connected = 1;
+	cli->connected = 0;
 	cli->id        = tid;
 	iobuf_init2(&cli->rio.buf, &cli->wio.buf, "tcp");
 	list_add_tail(&cli->list, &all_tunnels);
@@ -501,7 +501,8 @@ int tunnel_event(tunnel_t *tun, HANDLE h)
 
 			if ((ret >= 0) && (evt & FD_READ)) {
 				debug(0, "FD_READ");
-				ret = tunnel_sockrecv_event(tun);
+				if (tun->connected)
+				    ret = tunnel_sockrecv_event(tun);
 				if (evt & FD_CLOSE)
 				    while ((ret = tunnel_sockrecv_event(tun)) > 0);
 			}

@@ -331,7 +331,7 @@ void tunnel_close(tunnel_t *tun)
 	free(tun);
 }
 
-static int tunnel_sockrecv_event(tunnel_t *tun)
+int tunnel_sockrecv_event(tunnel_t *tun)
 {
 	int ret;
 	unsigned int r;
@@ -501,8 +501,10 @@ int tunnel_event(tunnel_t *tun, HANDLE h)
 
 			if ((ret >= 0) && (evt & FD_READ)) {
 				debug(0, "FD_READ");
-				if (tun->connected)
+				if (tun->connected > 0)
 				    ret = tunnel_sockrecv_event(tun);
+				else
+				    tun->connected = -1;
 				if (evt & FD_CLOSE)
 				    while ((ret = tunnel_sockrecv_event(tun)) > 0);
 			}

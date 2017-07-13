@@ -47,7 +47,7 @@ typedef struct _vchannel {
 typedef struct _tunnel {
 	struct list_head list;   /**< double-linked list */
 	sock_t sock;             /**< tunnel socket */
-	unsigned char connected; /**< 1 if tunnel is connected */
+	char connected; /**< 1 if tunnel is connected */
 	unsigned char server;    /**< 1 for reverse-connect tunnel */
 	unsigned char id;        /**< tunnel identifier */
 	HANDLE proc;     /**< child process HANDLE */
@@ -104,6 +104,7 @@ int tunnel_event(tunnel_t *, HANDLE);
 int tunnel_write(tunnel_t *tun, const void *, unsigned int);
 void tunnel_close(tunnel_t *);
 void tunnels_kill(void);
+int tunnel_sockrecv_event(tunnel_t *tun);
 
 /* errors.c ***/
 int wsaerror(const char *);

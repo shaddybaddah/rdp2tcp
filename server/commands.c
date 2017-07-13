@@ -102,6 +102,7 @@ static int cmd_data(const r2tmsg_t *msg, unsigned int len)
 
 static int cmd_rconn(const r2tmsg_t *msg, unsigned int len)
 {
+	int ret = 0;
 	tunnel_t *tun;
 	
 	trace_chan("len=%u, id=0x%02x", len, msg->id);
@@ -110,9 +111,12 @@ static int cmd_rconn(const r2tmsg_t *msg, unsigned int len)
 		error("invalid tunnel id 0x%02x", msg->id);
 		return 0;
 	}
+	if (tun->connected < 0) {
+		while ((ret = tunnel_sockrecv_event(tun)) > 0);
+	}
 	tun->connected = 1;
 
-	return 0;
+	return ret;
 }
 
 const cmdhandler_t cmd_handlers[R2TCMD_MAX] = {

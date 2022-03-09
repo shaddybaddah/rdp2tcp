@@ -95,7 +95,7 @@ int channel_read_event(void)
 {
 	ssize_t r;
 	char *ptr;
-	unsigned int len, msglen, avail;
+	unsigned int msglen, avail;
 	
 	//trace_chan("");
 
@@ -113,10 +113,11 @@ int channel_read_event(void)
 	if (!ptr)
 		return error("failed to reserve channel memory");
 
-	len = msglen;
+	avail = msglen;
 	do {
-		r = read(RDP_FD_IN, ptr, msglen);
-		//trace_chan("r=%u/%u", r, msglen);
+		r = read(RDP_FD_IN, ptr, avail);
+		//trace_chan("r=%u/%u", r, avail);
+		// for consistency, a zero read is an error (as above)
 		if (r <= 0)
 			goto chan_read_err;
 
@@ -131,10 +132,10 @@ int channel_read_event(void)
 		print_xfer("chan", 'r', (unsigned int)r);
 
 		ptr += r;
-		msglen -= r;
-	} while (msglen > 0);
+		avail -= r;
+	} while (avail > 0);
 
-	iobuf_commit(&vc.ibuf, len);
+	iobuf_commit(&vc.ibuf, msglen);
 	commands_parse(&vc.ibuf);
 	time(&vc.ts);
 

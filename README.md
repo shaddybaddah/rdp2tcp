@@ -4,7 +4,9 @@
 
 ## clone
 ```sh
-git clone https://github.com/gerardo-junior/rdp2tcp.git [RDP2TCP FOLDER]
+git clone https://github.com/shaddybaddah/rdp2tcp.git [RDP2TCP FOLDER]
+# or git clone https://github.com/gerardo-junior/rdp2tcp.git
+# from which this README is sourced
 cd [RDP2TCP FOLDER]
 ```
 

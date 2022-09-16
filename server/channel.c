@@ -144,7 +144,7 @@ int channel_write_event(void)
 		vc.connected ^= 1;
 	}
 
-	return 0;
+	return ret;
 }
 
 /**

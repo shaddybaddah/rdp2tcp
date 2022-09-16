@@ -61,7 +61,7 @@ int __aio_init_forward(aio_t *rio, aio_t *wio
 
 	rio->io.hEvent = evt1;
 	wio->io.hEvent = evt2;
-	rio->min_io_size = 1024;
+	rio->min_io_size = 2048;
 	wio->min_io_size = 0;
 
 	return 0;
@@ -108,6 +108,7 @@ int aio_read(
 	len = 0;
 
 	if (rio->pending) {
+		//printf("read pending\n");
 		rio->pending = 0;
 		if (!GetOverlappedResult(fd, &rio->io, &len, FALSE)) {
 			ResetEvent(rio->io.hEvent);
@@ -143,6 +144,7 @@ int aio_read(
 	if (ReadFile(fd, data, (DWORD)avail, &r, &rio->io)) {
 
 		trace_chan("%i/%i overlap=%u", r, avail, len);
+		//printf("%i/%i overlap=%u\n", (int)r, (int)avail, (unsigned)len);
 		if (r == 0) {
 			ResetEvent(rio->io.hEvent);
 			return error("fd closed");
@@ -167,6 +169,7 @@ int aio_read(
 
 			case ERROR_IO_PENDING:
 				rio->pending = 1;
+				//printf("pending:= 1\n");
 				break;
 
 			case ERROR_BROKEN_PIPE:

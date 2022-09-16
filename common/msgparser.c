@@ -34,6 +34,30 @@
 extern int debug_level;
 extern const cmdhandler_t cmd_handlers[];
 
+/*
+static char const hexdigit[] = "0123456789abcdef";
+
+static void dumpData(void *data, unsigned length) {
+    unsigned const limit = 98;
+    char hex[2];
+    unsigned l = length>limit ? limit/2 : length;
+    for (unsigned i=0; i<l; ++i) {
+	hex[0] = hexdigit[(((char *)data)[i]>>4)&0xf];
+	hex[1] = hexdigit[((char *)data)[i]&0xf];
+        printf("%.2s", hex);
+    }
+    if (length>limit) {
+        printf("...");
+        for (unsigned i=length-l; i<length; ++i) {
+	    hex[0] = hexdigit[(((char *)data)[i]>>4)&0xf];
+	    hex[1] = hexdigit[((char *)data)[i]&0xf];
+            printf("%.2s", hex);
+	}
+    }
+    puts("");
+}
+*/
+
 /**
  * parse rdp2tcp commands and call specific handlers
  * @param[in] ibuf input buffer
@@ -43,6 +67,7 @@ int commands_parse(iobuf_t *ibuf)
 {
 	unsigned char cmd, *data;
 	unsigned int off, msg_len, avail;
+	int rc = 0;
 	static const unsigned char r2t_min_size[R2TCMD_MAX] = {
 		3, // R2TCMD_CONN
 		2, // R2TCMD_CLOSE
@@ -62,6 +87,8 @@ int commands_parse(iobuf_t *ibuf)
 	data  = iobuf_dataptr(ibuf);
 	avail = iobuf_datalen(ibuf);
 	debug(1, "commands_parse(avail=%u)", avail);
+	//printf(">%8u ", (unsigned)avail);
+	//dumpData(data, avail);
 
 	// for each command
 	while (off + 5 < avail) {
@@ -76,27 +103,35 @@ int commands_parse(iobuf_t *ibuf)
 		off += 4;
 
 		cmd = data[off];
-		if (cmd >= R2TCMD_MAX)
-			return error("invalid command id 0x%02x", cmd);
+		unsigned char *msg = data+off;
+		off += msg_len;
+		if (cmd >= R2TCMD_MAX) {
+			rc = error("invalid command id 0x%02x", cmd);
+			break;
+		}
 
-		if (msg_len < (unsigned int)r2t_min_size[cmd])
-			return error("command 0x%02x too short 0x%08x < 0x%08x", 
+		if (msg_len < (unsigned int)r2t_min_size[cmd]) {
+			rc = error("command 0x%02x too short 0x%08x < 0x%08x", 
 					cmd, msg_len, (unsigned int)r2t_min_size[cmd]);
+			break;
+		}
 
-		if (!cmd_handlers[cmd])
-			return error("command 0x%02x not supported", cmd);
+		if (!cmd_handlers[cmd]) {
+			rc = error("command 0x%02x not supported", cmd);
+			break;
+		}
 
 		// call specific command handler
-		if (cmd_handlers[cmd]((const r2tmsg_t*)(data+off), msg_len))
-			return -1;
-
-		off += msg_len;
+		if (cmd_handlers[cmd]((const r2tmsg_t*)msg, msg_len)) {
+			rc = -1;
+			break;
+		}
 	}
 
 	if (off > 0)
 		iobuf_consume(ibuf, off);
 
-	return 0;
+	return rc;
 }
 
 // R2TERR_xxx error strings

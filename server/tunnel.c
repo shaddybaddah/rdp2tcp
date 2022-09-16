@@ -67,11 +67,9 @@ static unsigned char wsa_to_r2t_error(int err)
  */
 static unsigned char tunnel_generate_id(void)
 {
-	int ok;
 	unsigned char tid;
 	static unsigned char last_tid = 0xff;
 
-	ok = 1;
 	for (tid=last_tid+1; tid!=last_tid; ++tid) {
 		if (!tunnel_lookup(tid)) {
 			last_tid = tid;
@@ -504,6 +502,8 @@ int tunnel_event(tunnel_t *tun, HANDLE h)
 			if ((ret >= 0) && (evt & FD_READ)) {
 				debug(0, "FD_READ");
 				ret = tunnel_sockrecv_event(tun);
+				if (evt & FD_CLOSE)
+				    while ((ret = tunnel_sockrecv_event(tun)) > 0);
 			}
 
 			if (evt & FD_CLOSE) {

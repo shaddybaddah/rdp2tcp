@@ -24,6 +24,7 @@
 #include "debug.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #ifndef _WIN32
 #include <string.h>
 #include <fcntl.h>
@@ -107,16 +108,16 @@ const char *net_error(int ret, int err)
 	
 #ifndef _WIN32
 	snprintf(buffer, sizeof(buffer)-1, "%s (%s)", x,
-				(ret == NETERR_RESOLVE ? gai_strerror(err) : strerror(err)));
+				(ret == NETERR_RESOLVE ? gai_strerror(err) : err!=NETERR_CLOSED ? strerror(abs(err)) : "Connection closed"));
 #else
 	msg[0] = 0;
 	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM
 						|FORMAT_MESSAGE_IGNORE_INSERTS
 						|FORMAT_MESSAGE_MAX_WIDTH_MASK,
-						NULL, err,
+						NULL, abs(err),
 						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 						(LPSTR)msg, sizeof(msg), NULL);
-	snprintf(buffer, sizeof(buffer)-1, "%s (%s)", x, msg);
+	snprintf(buffer, sizeof(buffer)-1, "%s (%s)", x, err!=NETERR_CLOSED ? msg : "Connection closed");
 #endif
 	return (const char *) buffer;
 }

@@ -16,7 +16,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -86,7 +86,7 @@ void aio_kill_forward(aio_t *rio, aio_t *wio)
  * @param[in,out] rio aio_t structure associated with input buffer
  * @param[in] fd file descriptor
  * @param[in] name name of stream to be displayed on console
- * @param[in] callback function called data are received 
+ * @param[in] callback function called data are received
  * @param[in] ctx context passed as argument to callback function
  * @return -1 on error
  */
@@ -108,6 +108,7 @@ int aio_read(
 	len = 0;
 
 	if (rio->pending) {
+		//printf("read pending\n");
 		rio->pending = 0;
 		if (!GetOverlappedResult(fd, &rio->io, &len, FALSE)) {
 			if (GetLastError() == ERROR_MORE_DATA) {
@@ -118,7 +119,7 @@ int aio_read(
 				return syserror("GetOverlappedResult");
 			}
 		}
-		
+
 		if (!len) {
 			ResetEvent(rio->io.hEvent);
 			return error("fd closed");
@@ -148,6 +149,7 @@ int aio_read(
 	if (ReadFile(fd, data, (DWORD)avail, &r, &rio->io)) {
 
 		trace_chan("%i/%i overlap=%u", r, avail, len);
+		//printf("%i/%i overlap=%u\n", (int)r, (int)avail, (unsigned)len);
 		if (r == 0) {
 			ResetEvent(rio->io.hEvent);
 			return error("fd closed");
@@ -172,10 +174,16 @@ int aio_read(
 
 			case ERROR_IO_PENDING:
 				rio->pending = 1;
+				//printf("pending:= 1\n");
 				break;
 
 			case ERROR_BROKEN_PIPE:
 				info(0, "child process has closed pipe");
+				break;
+
+			// There is more data available than what fit into buffer.
+			case ERROR_MORE_DATA:
+				rio->pending = 1;
 				break;
 
 			default:
@@ -258,4 +266,3 @@ int aio_write(aio_t *wio, HANDLE fd, const char *name)
 
 	return 0;
 }
-

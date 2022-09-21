@@ -34,6 +34,30 @@
 extern int debug_level;
 extern const cmdhandler_t cmd_handlers[];
 
+/*
+static char const hexdigit[] = "0123456789abcdef";
+
+static void dumpData(void *data, unsigned length) {
+    unsigned const limit = 98;
+    char hex[2];
+    unsigned l = length>limit ? limit/2 : length;
+    for (unsigned i=0; i<l; ++i) {
+	hex[0] = hexdigit[(((char *)data)[i]>>4)&0xf];
+	hex[1] = hexdigit[((char *)data)[i]&0xf];
+        printf("%.2s", hex);
+    }
+    if (length>limit) {
+        printf("...");
+        for (unsigned i=length-l; i<length; ++i) {
+	    hex[0] = hexdigit[(((char *)data)[i]>>4)&0xf];
+	    hex[1] = hexdigit[((char *)data)[i]&0xf];
+            printf("%.2s", hex);
+	}
+    }
+    puts("");
+}
+*/
+
 /**
  * parse rdp2tcp commands and call specific handlers
  * @param[in] ibuf input buffer
@@ -63,6 +87,8 @@ int commands_parse(iobuf_t *ibuf)
 	data  = iobuf_dataptr(ibuf);
 	avail = iobuf_datalen(ibuf);
 	debug(1, "commands_parse(avail=%u)", avail);
+	//printf(">%8u ", (unsigned)avail);
+	//dumpData(data, avail);
 
 	// for each command
 	while (off + 5 < avail) {
